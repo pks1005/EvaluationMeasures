@@ -31,7 +31,7 @@ public class Main {
             Indexer paraIndexer = new Indexer("index-directory");
             indexer.rebuildIndexes(fileInputStream);           
             paraIndexer.rebuildIndexes1(paraFileInputStream); 
-            for(int i=0; i<2;i++){
+            for(int i=0; i<indexer.nid.size();i++){
             	//System.out.println("ID: "+indexer.nid.get(i).id + "\tname: "+indexer.nid.get(i).name);
             	//System.out.println("rebuildIndexes done");
 
@@ -39,15 +39,15 @@ public class Main {
                 // and retrieve the top 10 result
                 System.out.println("performSearch");
                 SearchEngine se = new SearchEngine();
-                TopDocs topDocs = se.performSearch(indexer.nid.get(i).name, 5);
+                TopDocs topDocs = se.performSearch(indexer.nid.get(i).name, 100);
 
-                System.out.println("Results found for Query "+indexer.nid.get(i).id + topDocs.totalHits);
+                System.out.println("Results found for Query "+indexer.nid.get(i).id + " Total hit: "+topDocs.totalHits);
                 ScoreDoc[] hits = topDocs.scoreDocs;
 
                 for (ScoreDoc scoreDoc :hits) {
                     Document doc = se.getDocument(scoreDoc.doc);
                     System.out.println(doc.get("id")
-                            + " " + doc.get("name")
+                            + " " + doc.get("content")
                             + " (" + scoreDoc.score + ")");
                 }
             }
