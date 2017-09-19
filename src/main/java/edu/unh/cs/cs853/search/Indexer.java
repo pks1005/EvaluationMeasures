@@ -25,6 +25,8 @@ import org.apache.lucene.store.FSDirectory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.util.ArrayList;
 
 /**
  * @author John
@@ -34,41 +36,101 @@ public class Indexer {
     /**
      * Creates a new instance of Indexer
      */
-    public Indexer() {
+    public Indexer(String url1) {
+    	url=url1;
     }
 
     private IndexWriter indexWriter = null;
+    String url="index-directory";
+    File f1 = new File(url);
+    Directory indexDir;
+    public Document doc;
+    public ArrayList<NameId> nid = new ArrayList<NameId>();
+    public IndexWriter writer;
+    NameId obj = new NameId();
+    String file1 = "index-directory";
+    int count =0;
 
     public IndexWriter getIndexWriter() throws IOException {
         if (indexWriter == null) {
-            Directory indexDir = FSDirectory.open(new File("index-directory").toPath());
+        	//System.out.println("indexWriter is null");
+        	f1 = new File(file1);
+        	indexDir = FSDirectory.open(f1.toPath());
             IndexWriterConfig config = new IndexWriterConfig(new StandardAnalyzer());
             indexWriter = new IndexWriter(indexDir, config);
+        }else{
+        	//System.out.println("indexWriter is not null");
+        	
         }
         return indexWriter;
     }
 
     public void closeIndexWriter() throws IOException {
         if (indexWriter != null) {
-            indexWriter.close();
+            indexWriter.close();            
         }
     }
 
     public void indexParagraph(Data.Paragraph paragraph) throws IOException {
 
 //        System.out.println("Indexing paragraph: " + paragraph);
-        IndexWriter writer = getIndexWriter();
-        Document doc = new Document();
+        writer = getIndexWriter();
+        doc = new Document();
         doc.add(new StringField("id", paragraph.getParaId(), Field.Store.YES));
         doc.add(new TextField("content", paragraph.getTextOnly(), Field.Store.YES));
         writer.addDocument(doc);
     }
 
+    public void indexPage(Data.Page page) throws IOException {
+
+//      System.out.println("Indexing paragraph: " + paragraph);
+      writer = getIndexWriter();
+      doc = new Document();
+      doc.add(new StringField("id", page.getPageId(), Field.Store.YES));
+      doc.add(new TextField("name", page.getPageName(), Field.Store.YES));
+      //System.out.println("ID: "+page.getPageId() 
+  		//	+ "\tname: "+page.getPageName());
+      obj = new NameId();
+      obj.id = page.getPageId();
+      obj.name = page.getPageName();
+      nid.add(obj);
+      writer.addDocument(doc);
+  }
+    
     public void rebuildIndexes(FileInputStream fileInputStream) throws IOException, CborException {
         //
         // Erase existing index
         //
-        getIndexWriter();
+    	//indexWriter = null;
+        //getIndexWriter();
+
+
+        for (Data.Page page : DeserializeData.iterableAnnotations(fileInputStream)) {
+
+            //
+            // Index all Accommodation entries
+            //
+            //indexParagraph(paragraph);
+            indexPage(page);
+
+
+            /*List<String> result = new ArrayList<>();
+            for (Data.PageSkeleton skel : paragraph) {
+                result.addAll(recurseArticle(skel, page.getPageName()));
+            }*/
+
+            /*for (String line : result) {
+                System.out.println(line);
+            }*/
+        }
+        closeIndexWriter();
+    }
+    public void rebuildIndexes1(FileInputStream fileInputStream) throws IOException, CborException {
+        //
+        // Erase existing index
+        //
+    	//indexWriter = null;
+        //getIndexWriter();
 
 
         for (Data.Paragraph paragraph : DeserializeData.iterableParagraphs(fileInputStream)) {
@@ -77,6 +139,7 @@ public class Indexer {
             // Index all Accommodation entries
             //
             indexParagraph(paragraph);
+            //indexPage(page);
 
 
             /*List<String> result = new ArrayList<>();
@@ -91,6 +154,12 @@ public class Indexer {
         closeIndexWriter();
     }
 
+    public void cleanIndex(){
+    	File f[] = f1.listFiles();
+        for(int i=0;i<f.length;i++){
+        	f[i].delete();
+        }
+    }
 
    /* private static List<String> recurseArticle(Data.Paragraph parag, String query) {
         if (skel instanceof Data.Para) {
