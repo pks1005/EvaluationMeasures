@@ -8,9 +8,13 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.util.Iterator;
 
 public class Main {
@@ -31,6 +35,11 @@ public class Main {
             Indexer paraIndexer = new Indexer("index-directory");
             indexer.rebuildIndexes(fileInputStream);           
             paraIndexer.rebuildIndexes1(paraFileInputStream); 
+            FileWriter f1 = new FileWriter("results2.txt");
+            BufferedWriter bw = new BufferedWriter(f1);
+            
+            String resultString = null;
+            
             for(int i=0; i<indexer.nid.size();i++){
             	//System.out.println("ID: "+indexer.nid.get(i).id + "\tname: "+indexer.nid.get(i).name);
             	//System.out.println("rebuildIndexes done");
@@ -41,17 +50,25 @@ public class Main {
                 SearchEngine se = new SearchEngine();
                 TopDocs topDocs = se.performSearch(indexer.nid.get(i).name, 100);
 
-                System.out.println("Results found for Query "+indexer.nid.get(i).id + " Total hit: "+topDocs.totalHits);
+                //System.out.println(indexer.nid.get(i).id + " Total hit: "+topDocs.totalHits);
                 ScoreDoc[] hits = topDocs.scoreDocs;
 
+                int rank = 0;
                 for (ScoreDoc scoreDoc :hits) {
                     Document doc = se.getDocument(scoreDoc.doc);
-                    System.out.println(doc.get("id")
-                            + " " + doc.get("content")
-                            + " (" + scoreDoc.score + ")");
+                    resultString = indexer.nid.get(i).id + " Q0 " +doc.get("id")
+                    //+ " " + doc.get("content")
+                    + " " + ++rank 
+                    + " (" + scoreDoc.score + ")"
+                    + " Team3-Practical Scoring Function";
+                    System.out.println(resultString);
+                    bw.write(resultString+"\n");
+                    
                 }
+                
             }
-            
+            bw.close();
+            f1.close();
             
             
             System.out.println("performSearch done");
