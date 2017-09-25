@@ -47,6 +47,8 @@ public class Main {
                 // perform search on the query
                 // and retrieve the top 10 result
                 System.out.println("performSearch");
+                
+                //below two lines does scoring
                 SearchEngine se = new SearchEngine();
                 TopDocs topDocs = se.performSearch(indexer.nid.get(i).name, 100);
 
@@ -59,8 +61,8 @@ public class Main {
                     resultString = indexer.nid.get(i).id + " Q0 " +doc.get("id")
                     //+ " " + doc.get("content")
                     + " " + ++rank 
-                    + " (" + scoreDoc.score + ")"
-                    + " Team3-Practical Scoring Function";
+                    + " " + scoreDoc.score + ""
+                    + " Team3 Practical";
                     System.out.println(resultString);
                     bw.write(resultString+"\n");
                     
